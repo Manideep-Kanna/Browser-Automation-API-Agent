@@ -16,7 +16,6 @@ from jira import JIRA
 ALLOW_DANGEROUS_REQUEST = True
 
 
-# Enter you credentials...
 JIRA_SERVER = ''
 EMAIL = ''  # Your Atlassian email
 API_TOKEN = ''      # From https://id.atlassian.com/manage/api-tokens
@@ -292,17 +291,17 @@ def execute_jira_feature(issue_key):
     updated     = issue.fields.updated
 
 #     # 3. Ask the LLM to build a *very descriptive* feature file
-#     prompt_to_generate_feature = f"""
-#             You are a BDD expert. Generate a  Gherkin feature file, by using the folllowing info
-#             Ticket data:
-#               Key: {issue_key}
-#               Summary: {summary}
-#               Description: {description}
-# """
-#     # this returns a multi‑line Gherkin string
-#     feature_text = llm.invoke(prompt_to_generate_feature).content
-#     feature_text = feature_text.replace("```gherkin\n", "").replace("```", "")
-    feature_text=description
+    prompt_to_generate_feature = f"""
+            You are a BDD expert. Generate a  Gherkin feature file, by using the folllowing info, 
+            Dont include any explaination strictly follow Gherkin File guideline
+            Ticket data:
+              Key: {issue_key}
+              Summary: {summary}
+              Description: {description}
+"""
+    # this returns a multi‑line Gherkin string
+    feature_text = llm.invoke(prompt_to_generate_feature).content
+    feature_text = feature_text.replace("```gherkin\n", "").replace("```", "")
     print(feature_text)
 
     # 4. Save it to disk
@@ -320,16 +319,15 @@ You have exactly two tools:
 > api_agent_tool(query: str) -> str  
 >   Use this for any HTTP/API interaction: GET, POST, inspect JSON, check status codes.
 
-Execute this feature **step by step**.  
+Execute this gherkin feature file .  
 For each line that begins with Given/When/And/Then:
   - If it’s a UI action, invoke:
       browser_agent_tool("<that exact step text>")
   - If it’s an API action, invoke:
       api_agent_tool("<that exact step text>")
 
-Do **not** print any explanation—only the tool calls themselves, in sequence.
-
-When you’ve finished all steps, output **only** this JSON object (no markdown, no extra text):
+When you’ve finished all steps,If Every step is successful generate me a test plan
+or else output this JSON object during :
 ```json
 {{
   "feature": "{issue_key}.feature",
@@ -341,8 +339,6 @@ When you’ve finished all steps, output **only** this JSON object (no markdown,
 }}
 Here is the feature to run:
 
-Copy
-Edit
 {feature_text}
 """
     agent_result = coordinator_agent.run(execute_prompt)
