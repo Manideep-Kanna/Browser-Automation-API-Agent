@@ -1,0 +1,10 @@
+langchain
+langchain-community
+langchain-openai
+flask
+flasgger
+python-dotenv
+aiohttp
+playwright
+browser-use
+jira
